@@ -1,11 +1,13 @@
 const amqp = require("amqplib");
 const redis = require("./services/redisService");
-const { createWorkItem } = require("./services/workItemService");
+const { getOrCreateWorkItem } = require("./services/workItemService");
+const { Signal, connectMongo } = require("./services/mongoService");
 
 const QUEUE = "signals";
 
 const startWorker = async () => {
   try {
+    await connectMongo();
     const connection = await amqp.connect("amqp://localhost");
     const channel = await connection.createChannel();
     await channel.assertQueue(QUEUE, { durable: true });
@@ -24,14 +26,19 @@ const startWorker = async () => {
         let workItemId = await redis.get(key);
 
         if (!workItemId) {
-          workItemId = await createWorkItem(signal);
+          workItemId = await getOrCreateWorkItem(signal);
 
-          // 10-second debounce window
           await redis.set(key, workItemId, "EX", 10);
         }
 
+        const saved = await Signal.create({
+          ...signal,
+          work_item_id: workItemId,
+        });
+
+        console.log("Saved to Mongo:", saved._id);
         console.log(
-          `Signal for ${signal.component_id} → WorkItem ${workItemId}`
+          `Signal for ${signal.component_id} → WorkItem ${workItemId}`,
         );
 
         channel.ack(msg);
