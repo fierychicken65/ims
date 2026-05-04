@@ -12,9 +12,9 @@ exports.ingestSignal = async (req, res) => {
 
     console.log("Signal received:", req.body);
 
-    // IMPORTANT: no processing here yet
+    sendToQueue(req.body);
     return res.status(202).json({
-      message: "Signal accepted",
+      message: "Signal queued",
     });
 
   } catch (err) {
