@@ -20,6 +20,9 @@ connectMongo();
 initDB();
 connectQueue();
 
-app.listen(PORT, ()=>{
+const server = app.listen(PORT, ()=>{
     console.log(`Server running on port ${PORT}`);
 });
+
+server.keepAliveTimeout = 5000;
+server.headersTimeout = 6000;
