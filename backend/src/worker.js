@@ -2,6 +2,7 @@ const amqp = require("amqplib");
 const redis = require("./services/redisService");
 const { getOrCreateWorkItem } = require("./services/workItemService");
 const { Signal, connectMongo } = require("./services/mongoService");
+const { handleAlert } = require("./alerts/alertService");
 
 const QUEUE = "signals";
 
@@ -24,11 +25,11 @@ const startWorker = async () => {
 
       try {
         let workItemId = await redis.get(key);
-
+        let isNewWorkItem = false;  
         if (!workItemId) {
           workItemId = await getOrCreateWorkItem(signal);
-
           await redis.set(key, workItemId, "EX", 10);
+          isNewWorkItem = true;
         }
 
         const saved = await Signal.create({
@@ -42,6 +43,9 @@ const startWorker = async () => {
         );
 
         channel.ack(msg);
+        if(isNewWorkItem){
+          handleAlert(signal);
+        }
       } catch (err) {
         console.error("Processing error:", err);
       }
