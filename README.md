@@ -131,6 +131,7 @@ This is used to test the whole setup
 ```bash
 cd backend/src/test
 node loadTest.js
+node liveTest.js
 ```
 
 ## Note on Configuration
