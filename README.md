@@ -127,7 +127,7 @@ OPEN → INVESTIGATING → RESOLVED → CLOSED
 - Severity escalates automatically (P2 → P1 → P0) if higher-severity signals arrive.
 
 ## Load Testing
-
+This is used to test the whole setup
 ```bash
 cd backend/src/test
 node loadTest.js
