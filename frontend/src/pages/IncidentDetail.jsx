@@ -18,6 +18,10 @@ function IncidentDetail() {
 
   useEffect(() => {
     fetchIncident();
+
+    const interval = setInterval(fetchIncident, 3000);
+
+    return () => clearInterval(interval);
   }, [id]);
 
   const fetchIncident = async () => {
@@ -281,20 +285,50 @@ function IncidentDetail() {
           <h3 className="text-2xl font-bold text-white mb-6">Signals</h3>
           <div className="space-y-3">
             {incident.signals && incident.signals.length > 0 ? (
-              [...incident.signals]
-                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-                .map((s, i) => (
-                <div 
-                  key={i}
-                  className="p-3 bg-slate-600 rounded-lg text-slate-200 border-l-4 border-blue-500"
-                >
-                  <div className="flex justify-between items-start">
-                    <p className="font-semibold">{s.error}</p>
-                    <p className="text-xs text-slate-400">{new Date(s.timestamp).toLocaleString()}</p>
+              (() => {
+                const grouped = {};
+                [...incident.signals]
+                  .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                  .forEach((s) => {
+                    const d = new Date(s.timestamp);
+                    const key = `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}-${s.severity}`;
+                    if (!grouped[key]) {
+                      grouped[key] = { timestamp: s.timestamp, severity: s.severity, errors: [], count: 0 };
+                    }
+                    if (!grouped[key].errors.includes(s.error)) {
+                      grouped[key].errors.push(s.error);
+                    }
+                    grouped[key].count += 1;
+                  });
+                return Object.values(grouped).map((g, i) => (
+                  <div
+                    key={i}
+                    className={`p-4 bg-slate-600 rounded-lg text-slate-200 border-l-4 ${
+                      g.severity === 'P0' ? 'border-red-500' :
+                      g.severity === 'P1' ? 'border-orange-500' :
+                      'border-blue-500'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-semibold">{g.errors[0]}</p>
+                        {g.errors.length > 1 && (
+                          <p className="text-xs text-slate-400 mt-1">+{g.errors.length - 1} other error type{g.errors.length > 2 ? 's' : ''}</p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-slate-400">{new Date(g.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                        <span className={`inline-block mt-1 text-xs px-2 py-0.5 rounded font-semibold text-white ${
+                          g.severity === 'P0' ? 'bg-red-600' :
+                          g.severity === 'P1' ? 'bg-orange-600' :
+                          'bg-blue-600'
+                        }`}>{g.severity}</span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-slate-400 mt-2">{g.count} signal{g.count > 1 ? 's' : ''}</p>
                   </div>
-                  <p className="text-sm text-slate-400 mt-2">Severity: <span className="text-slate-200">{s.severity}</span></p>
-                </div>
-              ))
+                ));
+              })()
             ) : (
               <p className="text-slate-400">No signals recorded</p>
             )}
