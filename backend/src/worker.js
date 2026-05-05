@@ -45,7 +45,7 @@ const startWorker = async () => {
 
         // 🔥 Redis lock to prevent duplicate work item creation
         const lockKey = `lock:component:${signal.component_id}`;
-        const acquired = await redis.set(lockKey, "1", "EX", 10, "NX");
+        const acquired = await redis.set(lockKey, "1", "EX", 100, "NX");
 
         if (!acquired) {
           // Another worker is processing same component, wait briefly and retry
@@ -63,7 +63,7 @@ const startWorker = async () => {
         const { id: workItemId, isNew } =
           await getOrCreateWorkItem(signal);
 
-        await redis.set(key, workItemId, "EX", 10);
+        await redis.set(key, workItemId, "EX", 100);
         await redis.del(lockKey);
 
         const saved = await Signal.create({
