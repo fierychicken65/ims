@@ -62,6 +62,14 @@ function IncidentDetail() {
     return "blue";
   };
 
+  const getStatusColor = (status) => {
+    if (status === "OPEN") return "bg-red-600";
+    if (status === "INVESTIGATING") return "bg-yellow-600";
+    if (status === "RESOLVED") return "bg-blue-600";
+    if (status === "CLOSED") return "bg-green-600";
+    return "bg-slate-600";
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
       <div className="max-w-4xl mx-auto">
@@ -72,7 +80,7 @@ function IncidentDetail() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-slate-200">
             <div>
               <p className="text-sm text-slate-400 mb-1">Status</p>
-              <p className="text-lg font-semibold px-3 py-1 bg-slate-600 rounded w-fit">{incident.status}</p>
+              <p className={`text-lg font-semibold px-3 py-1 ${getStatusColor(incident.status)} rounded w-fit text-white`}>{incident.status}</p>
             </div>
 
             <div>
@@ -209,8 +217,11 @@ function IncidentDetail() {
                   key={i}
                   className="p-3 bg-slate-600 rounded-lg text-slate-200 border-l-4 border-blue-500"
                 >
-                  <p className="font-semibold">{s.error}</p>
-                  <p className="text-sm text-slate-400 mt-1">Severity: <span className="text-slate-200">{s.severity}</span></p>
+                  <div className="flex justify-between items-start">
+                    <p className="font-semibold">{s.error}</p>
+                    <p className="text-xs text-slate-400">{new Date(s.timestamp).toLocaleString()}</p>
+                  </div>
+                  <p className="text-sm text-slate-400 mt-2">Severity: <span className="text-slate-200">{s.severity}</span></p>
                 </div>
               ))
             ) : (

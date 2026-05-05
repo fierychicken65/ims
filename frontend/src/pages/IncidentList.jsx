@@ -14,6 +14,15 @@ function IncidentList() {
     P1: 1,
     P2: 2,
   };
+
+  const getStatusColor = (status) => {
+    if (status === "OPEN") return "bg-red-600";
+    if (status === "INVESTIGATING") return "bg-yellow-600";
+    if (status === "RESOLVED") return "bg-blue-600";
+    if (status === "CLOSED") return "bg-green-600";
+    return "bg-slate-600";
+  };
+
   const navigate = useNavigate();
 
   const fetchIncidents = async () => {
@@ -82,7 +91,7 @@ function IncidentList() {
 
                 <div className="space-y-2 text-sm">
                   <p className="text-slate-300">
-                    <b className="text-slate-200">Status:</b> <span className="ml-2 px-2 py-1 rounded bg-slate-600 text-white">{item.status}</span>
+                    <b className="text-slate-200">Status:</b> <span className={`ml-2 px-2 py-1 rounded font-semibold text-white ${getStatusColor(item.status)}`}>{item.status}</span>
                   </p>
                   <p className="text-slate-300">
                     <b className="text-slate-200">Severity:</b> 
