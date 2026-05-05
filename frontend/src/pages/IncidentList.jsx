@@ -21,15 +21,32 @@ function IncidentList() {
           key={item.id}
           onClick={() => navigate(`/incident/${item.id}`)}
           style={{
-            border: "1px solid #ccc",
-            padding: "10px",
+            border: "1px solid #ddd",
+            borderRadius: "8px",
+            padding: "15px",
             margin: "10px",
-            cursor: "pointer"
+            cursor: "pointer",
+            background: "#fff",
           }}
         >
-          <b>{item.component_id}</b>
-          <p>Status: {item.status}</p>
-          <p>Severity: {item.severity}</p>
+          <h3>{item.component_id}</h3>
+
+          <p>
+            <b>Status:</b> {item.status}
+          </p>
+          <p>
+            <b>Severity:</b> {item.severity}
+          </p>
+
+          <p>
+            <b>Started:</b> {new Date(item.start_time).toLocaleString()}
+          </p>
+
+          {item.end_time && (
+            <p>
+              <b>Ended:</b> {new Date(item.end_time).toLocaleString()}
+            </p>
+          )}
         </div>
       ))}
     </div>

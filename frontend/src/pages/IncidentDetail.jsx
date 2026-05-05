@@ -4,27 +4,34 @@ import API from "../services/api";
 
 function IncidentDetail() {
   const { id } = useParams();
+
   const [incident, setIncident] = useState(null);
 
   const [rca, setRca] = useState({
+    end_time: "",
+    category: "",
     root_cause: "",
     fix: "",
     prevention: "",
   });
-  const nextStatusMap = {
-    OPEN: "INVESTIGATING",
-    INVESTIGATING: "RESOLVED",
-    RESOLVED: "CLOSED",
-  };
+
   useEffect(() => {
-    API.get(`/work-items/${id}`).then((res) => {
-      setIncident(res.data);
-    });
+    fetchIncident();
   }, [id]);
 
+  const fetchIncident = async () => {
+    const res = await API.get(`/work-items/${id}`);
+    setIncident(res.data);
+  };
+
   const submitRCA = async () => {
-    await API.post(`/work-items/${id}/rca`, rca);
-    alert("RCA submitted");
+    try {
+      await API.post(`/work-items/${id}/rca`, rca);
+      alert("RCA submitted");
+      fetchIncident();
+    } catch (err) {
+      alert(err.response?.data?.error || "Error submitting RCA");
+    }
   };
 
   const changeStatus = async (newStatus) => {
@@ -33,92 +40,133 @@ function IncidentDetail() {
         status: newStatus,
       });
 
-      alert(`Status updated to ${newStatus}`);
-
-      // refresh data
-      const res = await API.get(`/work-items/${id}`);
-      setIncident(res.data);
+      fetchIncident();
     } catch (err) {
-      alert(err.response?.data?.error || "Error updating status");
+      alert(err.response?.data?.error);
     }
   };
 
   if (!incident) return <p>Loading...</p>;
+
   const isClosed = incident.status === "CLOSED";
+
+  const nextStatusMap = {
+    OPEN: "INVESTIGATING",
+    INVESTIGATING: "RESOLVED",
+    RESOLVED: "CLOSED",
+  };
+
+  const getSeverityColor = (sev) => {
+    if (sev === "P0") return "red";
+    if (sev === "P1") return "orange";
+    return "blue";
+  };
+
   return (
-    <div>
-      <h2>{incident.component_id}</h2>
-      <p
+    <div style={{ padding: "20px" }}>
+      {/* INCIDENT INFO */}
+      <div
         style={{
-          fontWeight: "bold",
-          color:
-            incident.status === "OPEN"
-              ? "red"
-              : incident.status === "INVESTIGATING"
-                ? "orange"
-                : incident.status === "RESOLVED"
-                  ? "blue"
-                  : "green",
+          background: "#fff",
+          padding: "20px",
+          borderRadius: "10px",
+          boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
         }}
       >
-        Status: {incident.status}
-      </p>
-      <p
-        style={{
-          color:
-            incident.severity === "P0"
-              ? "red"
-              : incident.severity === "P1"
-                ? "orange"
-                : "blue",
-        }}
-      >
-        Severity: {incident.severity}
-      </p>
-      <h3>Submit RCA</h3>
+        <h2>{incident.component_id}</h2>
 
-      <input
-        placeholder="Root Cause"
-        disabled={isClosed}
-        onChange={(e) => setRca({ ...rca, root_cause: e.target.value })}
-      />
+        <p>Status: {incident.status}</p>
 
-      <input
-        placeholder="Fix"
-        disabled={isClosed}
-        onChange={(e) => setRca({ ...rca, fix: e.target.value })}
-      />
-
-      <input
-        placeholder="Prevention"
-        disabled={isClosed}
-        onChange={(e) => setRca({ ...rca, prevention: e.target.value })}
-      />
-
-      <button onClick={submitRCA} disabled={isClosed}>
-        Submit RCA
-      </button>
-      {isClosed && (
-        <p style={{ color: "red" }}>
-          RCA already submitted. Incident is closed.
+        <p style={{ color: getSeverityColor(incident.severity) }}>
+          Severity: {incident.severity}
         </p>
-      )}
 
-      <h3>Status Actions</h3>
+        <p>Start: {new Date(incident.start_time).toLocaleString()}</p>
 
-      {incident.status !== "CLOSED" && (
-        <button onClick={() => changeStatus(nextStatusMap[incident.status])}>
-          Move to {nextStatusMap[incident.status]}
+        {incident.end_time && (
+          <p>End: {new Date(incident.end_time).toLocaleString()}</p>
+        )}
+
+        {incident.mttr && (
+          <p>
+            MTTR: {incident.mttr.days > 0 && `${incident.mttr.days}d `}
+            {incident.mttr.hours}h {incident.mttr.minutes}m
+          </p>
+        )}
+      </div>
+
+      {/* STATUS BUTTON */}
+      <div style={{ marginTop: "20px" }}>
+        {incident.status !== "CLOSED" && (
+          <button onClick={() => changeStatus(nextStatusMap[incident.status])}>
+            Move to {nextStatusMap[incident.status]}
+          </button>
+        )}
+      </div>
+
+      {/* RCA FORM */}
+      <div style={{ marginTop: "20px" }}>
+        <h3>Submit RCA</h3>
+
+        {isClosed && (
+          <p style={{ color: "red" }}>
+            RCA already submitted. Incident is closed.
+          </p>
+        )}
+
+        <label>End Time</label>
+        <input
+          type="datetime-local"
+          value={rca.end_time}
+          disabled={isClosed}
+          min={new Date(incident.start_time).toISOString().slice(0, 16)}
+          onChange={(e) => setRca({ ...rca, end_time: e.target.value })}
+        />
+
+        <label>Category</label>
+        <select
+          disabled={isClosed}
+          onChange={(e) => setRca({ ...rca, category: e.target.value })}
+        >
+          <option value="">Select</option>
+          <option value="INFRA">Infrastructure</option>
+          <option value="CODE">Code Issue</option>
+          <option value="NETWORK">Network</option>
+          <option value="DEPENDENCY">Dependency</option>
+        </select>
+
+        <label>Root Cause</label>
+        <textarea
+          disabled={isClosed}
+          onChange={(e) => setRca({ ...rca, root_cause: e.target.value })}
+        />
+
+        <label>Fix</label>
+        <textarea
+          disabled={isClosed}
+          onChange={(e) => setRca({ ...rca, fix: e.target.value })}
+        />
+
+        <label>Prevention</label>
+        <textarea
+          disabled={isClosed}
+          onChange={(e) => setRca({ ...rca, prevention: e.target.value })}
+        />
+
+        <button onClick={submitRCA} disabled={isClosed}>
+          Submit RCA
         </button>
-      )}
+      </div>
 
-      <h3>Signals</h3>
-
-      {incident.signals.map((s, i) => (
-        <div key={i}>
-          {s.error} - {s.severity}
-        </div>
-      ))}
+      {/* SIGNALS */}
+      <div style={{ marginTop: "20px" }}>
+        <h3>Signals</h3>
+        {incident.signals.map((s, i) => (
+          <div key={i}>
+            {s.error} - {s.severity}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
