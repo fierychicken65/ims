@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import API from "../services/api";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 function IncidentDetail() {
   const { id } = useParams();
@@ -130,6 +131,74 @@ function IncidentDetail() {
           )}
         </div>
 
+        {/* SIGNAL GRAPH */}
+        {incident.signals && incident.signals.length > 0 && (
+          <div className="bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600 rounded-lg p-8 mb-8 shadow-lg">
+            <h3 className="text-2xl font-bold text-white mb-6">Signal Timeline</h3>
+            <ResponsiveContainer width="100%" height={400}>
+              <LineChart
+                data={(() => {
+                  const grouped = {};
+                  [...incident.signals]
+                    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+                    .forEach((s) => {
+                      const d = new Date(s.timestamp);
+                      const key = `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+                      if (!grouped[key]) {
+                        grouped[key] = { time: key, P0: 0, P1: 0, P2: 0 };
+                      }
+                      grouped[key][s.severity] += 1;
+                    });
+                  return Object.values(grouped);
+                })()}
+                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
+                <XAxis dataKey="time" stroke="#94a3b8" tick={{ fontSize: 12 }} />
+                <YAxis
+                  stroke="#94a3b8"
+                  allowDecimals={false}
+                  tick={{ fontSize: 12 }}
+                  label={{ value: "Signal Count", angle: -90, position: "insideLeft", fill: "#94a3b8", fontSize: 12 }}
+                />
+                <Tooltip
+                  contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #475569", borderRadius: "8px" }}
+                  labelStyle={{ color: "#94a3b8" }}
+                  itemStyle={{ color: "#e2e8f0" }}
+                />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="P0"
+                  name="P0"
+                  stroke="#ef4444"
+                  strokeWidth={2}
+                  dot={{ fill: "#ef4444", r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="P1"
+                  name="P1"
+                  stroke="#f97316"
+                  strokeWidth={2}
+                  dot={{ fill: "#f97316", r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="P2"
+                  name="P2"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  dot={{ fill: "#3b82f6", r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
         {/* RCA FORM */}
         <div className="bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600 rounded-lg p-8 mb-8 shadow-lg">
           <h3 className="text-2xl font-bold text-white mb-6">Submit RCA</h3>
@@ -212,7 +281,9 @@ function IncidentDetail() {
           <h3 className="text-2xl font-bold text-white mb-6">Signals</h3>
           <div className="space-y-3">
             {incident.signals && incident.signals.length > 0 ? (
-              incident.signals.map((s, i) => (
+              [...incident.signals]
+                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                .map((s, i) => (
                 <div 
                   key={i}
                   className="p-3 bg-slate-600 rounded-lg text-slate-200 border-l-4 border-blue-500"

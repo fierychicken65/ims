@@ -30,6 +30,7 @@ function IncidentList() {
     setIncidents(res.data);
   };
 
+
   useEffect(() => {
     fetchIncidents();
 
