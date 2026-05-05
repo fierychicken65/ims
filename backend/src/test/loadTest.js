@@ -12,8 +12,8 @@ const components = [
 
 const severities = ["P0", "P1", "P2"];
 
-const TOTAL_REQUESTS = 200;
-const CONCURRENCY = 10;
+const TOTAL_REQUESTS = 10000;
+const CONCURRENCY = 1000;
 
 function random(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
