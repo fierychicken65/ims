@@ -132,3 +132,7 @@ OPEN → INVESTIGATING → RESOLVED → CLOSED
 cd backend/src/test
 node loadTest.js
 ```
+
+## Note on Configuration
+
+No `.env` files are used in this project. All database credentials, connection strings, and passwords are hardcoded directly in the service files for simplicity.

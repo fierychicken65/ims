@@ -4,10 +4,10 @@ const URL = "http://localhost:3000/signal";
 
 const components = [
   "CACHE_CLUSTER_01",
-  "CACHE_CLUSTER_02",
-  "DB_PRIMARY",
-  "DB_REPLICA",
-  "API_GATEWAY"
+  "CACHE_CLUSTER_03",
+  "DB_PRIMARY_03",
+  "DB_REPLICA_03",
+  "API_GATEWAY_10"
 ];
 
 const severities = ["P0", "P1", "P2"];
