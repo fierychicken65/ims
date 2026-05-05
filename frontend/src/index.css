@@ -1,31 +1,6 @@
+@import "tailwindcss";
+
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background-color: #f4f6f8;
-}
-
-h2, h3 {
-  margin-bottom: 10px;
-}
-
-input {
-  padding: 8px;
-  margin: 5px 0;
-  width: 100%;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
-button {
-  padding: 10px 15px;
-  margin-top: 10px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-button:disabled {
-  background-color: gray;
 }
